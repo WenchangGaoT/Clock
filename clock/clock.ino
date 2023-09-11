@@ -1,7 +1,12 @@
 #include <WiFi.h>
 #include <WiFiUdp.h>
 #include <NTPClient.h>               
-#include <TimeLib.h>                 
+#include <TimeLib.h>
+#include <ESP32Servo.h>
+
+#define SERVO_PIN 26 // ESP32 pin GPIO26 connected to servo motor
+
+Servo servoMotor;              
  
  
 const char *ssid     = "P60Art";
@@ -32,6 +37,8 @@ void setup() {
   }
   Serial.println("connected");
   timeClient.begin();
+  servoMotor.attach(SERVO_PIN);  // attaches the servo on ESP32 pin
+
 }
  
  
@@ -58,15 +65,10 @@ void loop() {
     Time[8]  = minute_ / 10 + 48;
     Time[6]  = hour_   % 10 + 48;
     Time[5]  = hour_   / 10 + 48;
- 
- 
- 
-    Date[5]  = day_   / 10 + 48;
-    Date[6]  = day_   % 10 + 48;
-    Date[8]  = month_  / 10 + 48;
-    Date[9]  = month_  % 10 + 48;
-    Date[13] = (year_   / 10) % 10 + 48;
-    Date[14] = year_   % 10 % 10 + 48;
+
+    if (second_ % 60 == 0){
+      moveServo();
+    }
  
     Serial.println(Time);
     Serial.println(Date);
@@ -75,4 +77,13 @@ void loop() {
  
   }
   delay(500);
+}
+
+void moveServo(){
+  Serial.println("Moving arm!");
+  servoMotor.write(0);
+
+  delay(100);
+
+  servoMotor.write(100);
 }
