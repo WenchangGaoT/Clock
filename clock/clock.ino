@@ -4,13 +4,13 @@
 #include <TimeLib.h>                 
  
  
-const char *ssid     = "Alexahome";
-const char *password = "12345678";
+const char *ssid     = "P60Art";
+const char *password = "fsj13579";
  
 WiFiUDP ntpUDP;
  
  
-NTPClient timeClient(ntpUDP, "asia.pool.ntp.org", 20700, 60000);
+NTPClient timeClient(ntpUDP, "asia.pool.ntp.org", -14400, 60000);
  
 char Time[ ] = "TIME:00:00:00";
 char Date[ ] = "DATE:00/00/2000";
@@ -22,12 +22,6 @@ int year_;
 void setup() {
  
   Serial.begin(115200);
-  lcd.begin(21, 22);                 // Initialize I2C LCD module (SDA = GPIO21, SCL = GPIO22)
-  lcd.backlight();                   
-  lcd.setCursor(0, 0);
-  lcd.print(Time);
-  lcd.setCursor(0, 1);
-  lcd.print(Date);
  
   WiFi.begin(ssid, password);
   Serial.print("Connecting.");
@@ -76,11 +70,7 @@ void loop() {
  
     Serial.println(Time);
     Serial.println(Date);
- 
-    lcd.setCursor(0, 0);
-    lcd.print(Time);
-    lcd.setCursor(0, 1);
-    lcd.print(Date);
+
     last_second = second_;
  
   }
