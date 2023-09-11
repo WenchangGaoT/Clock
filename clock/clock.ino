@@ -83,7 +83,7 @@ void moveServo(){
   Serial.println("Moving arm!");
   servoMotor.write(0);
 
-  delay(100);
+  delay(1000);
 
   servoMotor.write(100);
 }
