@@ -12,6 +12,7 @@
 // Global variables
 Servo servoMotor;  
 WiFiUDP ntpUDP;
+AsyncWebServer server(80);
 int cur_speed;            
 unsigned long last_unix_epoch; // Unix epoch time spot of the most recent reset()
 int buttonLastState;
