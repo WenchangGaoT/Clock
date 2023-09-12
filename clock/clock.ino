@@ -65,6 +65,7 @@ void setup() {
         accelerate(speed);
       }
   });
+  server.begin();
 
   // Initializations
   timeClient.begin(); // Setting up time client
