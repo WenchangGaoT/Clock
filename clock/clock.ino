@@ -18,11 +18,11 @@ unsigned long last_unix_epoch; // Unix epoch time spot of the most recent reset(
 int buttonLastState;
  
 // Setting up wifi info 
-const char *ssid     = "Fios-MXtV9";
-const char *password = "fan355soy883cps";
+const char *ssid     = "P60Art";
+const char *password = "fsj13579";
 
 const char *server_id = "ESP";
-const char server_pwd = "esp";
+const char *server_pwd = "esp";
  
 // NTPClient for querying accurate Internet time
 NTPClient timeClient(ntpUDP, "asia.pool.ntp.org", -14400, 60000);
@@ -46,10 +46,11 @@ void setup() {
   Serial.println("\nSuccessfully connected to WiFI.");
 
   // Setting up server
-  print("\nSetting up server...");
+  WiFi.softAP(server_id, server_pwd);
+  Serial.print("\nSetting up server...");
   WiFi.softAP(ssid, password);
   IPAddress IP = WiFi.softAPIP();
-  print("\nSuccessfully set up server.");
+  Serial.print("\nSuccessfully set up server.");
 
   // This creates a new thread.
   // Calls back when receive inputs.
@@ -61,7 +62,7 @@ void setup() {
         // reset everything then change speed
         accelerate(speed);
       }
-  })
+  });
 
   // Initializations
   timeClient.begin(); // Setting up time client
