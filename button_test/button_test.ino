@@ -15,7 +15,6 @@ const char *password = "fsj13579";
  
 WiFiUDP ntpUDP;
  
- 
 NTPClient timeClient(ntpUDP, "asia.pool.ntp.org", -14400, 60000);
  
 char Time[ ] = "TIME:00:00:00";
