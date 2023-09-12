@@ -12,6 +12,7 @@
 // Global variables
 Servo servoMotor;  
 WiFiUDP ntpUDP;
+int servoInitPos = 30;
 AsyncWebServer server(80);
 int cur_speed;            
 unsigned long last_unix_epoch; // Unix epoch time spot of the most recent reset()
@@ -22,7 +23,7 @@ const char *ssid     = "P60Art";
 const char *password = "fsj13579";
 
 const char *server_id = "ESP";
-const char *server_pwd = "esp";
+const char *server_pwd = "espespespesp";
  
 // NTPClient for querying accurate Internet time
 NTPClient timeClient(ntpUDP, "asia.pool.ntp.org", -14400, 60000);
@@ -43,14 +44,15 @@ void setup() {
     delay(500);
     Serial.print(".");
   }
-  Serial.println("\nSuccessfully connected to WiFI.");
+  Serial.println("\nSuccessfully connected to WiFI.\n");
 
   // Setting up server
   WiFi.softAP(server_id, server_pwd);
   Serial.print("\nSetting up server...");
   // WiFi.softAP(ssid, password);
   IPAddress IP = WiFi.softAPIP();
-  Serial.print("\nSuccessfully set up server.");
+  Serial.println(IP);
+  Serial.print("\nSuccessfully set up server.\n");
 
   // This creates a new thread.
   // Calls back when receive inputs.
@@ -70,6 +72,11 @@ void setup() {
   pinMode(BUTTON_PIN, INPUT_PULLUP); // Setting up button
   cur_speed = 1;
   last_unix_epoch = timeClient.getEpochTime();
+  buttonLastState = HIGH;
+
+  // Initialize servo position
+  servoMotor.write(servoInitPos);
+  delay(1000);
 }
 
 void reset() {
@@ -83,7 +90,8 @@ void moveServo(){
   Serial.println("Moving arm!");
   servoMotor.write(0);
   delay(1000);
-  servoMotor.write(100);
+  servoMotor.write(servoInitPos);
+  delay(1000);
 }
 
 void printGlobalTime() {
@@ -114,9 +122,9 @@ void getLocalTime(byte* time_arr) {
   unsigned long unix_epoch = timeClient.getEpochTime();
   unsigned long real_time_passed = unix_epoch - last_unix_epoch;
   unsigned long local_unix_epoch = last_unix_epoch + (unsigned long)cur_speed*real_time_passed;
-  time_arr[0] = hour(local_unix_epoch);
-  time_arr[1] = minute(local_unix_epoch);
-  time_arr[2] = second(local_unix_epoch);
+  time_arr[0] = hour(local_unix_epoch) % 12;
+  time_arr[1] = minute(local_unix_epoch) % 60;
+  time_arr[2] = second(local_unix_epoch) % 60;
 }
 
 void printLocalTime() {
@@ -140,7 +148,7 @@ void accelerate(int speed) {
 void loop() {
   byte time[5];
   int buttonCurState = digitalRead(BUTTON_PIN);
-  getLocalTime(time);
+  // getLocalTime(time);
 
   // Check whether button is hit
   if(buttonLastState == LOW && buttonCurState == HIGH) {
@@ -148,16 +156,22 @@ void loop() {
     printLocalTime();
     Serial.print("\nGlobal Time: \n");
     printGlobalTime();
+
+    getLocalTime(time);
     
-    Serial.print("\nMoving servos to show hour...");
+    Serial.print("\nMoving servos to show hour...\n");
     for(int i = 0; i < time[0]; i++) moveServo();
+    // Serial.print("\nMoved %d times!", &time[0]);
     // Do something?
+    Serial.print("Moving servos to show minute...\n");
+    delay(3000);
     for(int i = 0; i < time[1]/10; i++) moveServo();
     delay(2000); // Wait 2 seconds after button clicking event
   }
 
   // Check local time
-  if(time[1] % 15 == 0) {
+  getLocalTime(time);
+  if(time[1] % 15 == 0 && time[2] == 0) {
     // Move servo once every 15 minutes (in local clock);
     Serial.print("Local Time: \n");
     printLocalTime();
