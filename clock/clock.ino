@@ -163,4 +163,5 @@ void loop() {
     printGlobalTime();
     moveServo();
   }
+  buttonLastState = buttonCurState;
 }
