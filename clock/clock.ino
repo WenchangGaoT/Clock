@@ -48,7 +48,7 @@ void setup() {
   // Setting up server
   WiFi.softAP(server_id, server_pwd);
   Serial.print("\nSetting up server...");
-  WiFi.softAP(ssid, password);
+  // WiFi.softAP(ssid, password);
   IPAddress IP = WiFi.softAPIP();
   Serial.print("\nSuccessfully set up server.");
 
