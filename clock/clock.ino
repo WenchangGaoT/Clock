@@ -33,6 +33,17 @@ char Date[ ] = "DATE:00/00/2000";
 byte last_second, second_, minute_, hour_, day_, month_;
 int year_;
  
+
+int str2int(String s) {
+  int ret = 0;
+  Serial.println(s);
+  for (int i = 0; i < s.length(); i++) {
+    ret *= 10;
+    ret += (s[i]-'0');
+  }
+  return ret;
+}
+
 void setup() {
  
   Serial.begin(115200);
@@ -58,12 +69,17 @@ void setup() {
   // Calls back when receive inputs.
   server.on("/test",HTTP_POST,[](AsyncWebServerRequest * request){},
     NULL,[](AsyncWebServerRequest * request, uint8_t *data_in, size_t len, size_t index, size_t total) {
-      uint8_t new_speed = *data_in;
-      int speed = (int)new_speed;
+      // uint8_t new_speed = *data_in;
+      String val = String((char*)data_in, len);
+      int new_speed = str2int(val);
+      int speed = new_speed;
+      Serial.print("Accelerate request\n");
+      Serial.println(speed);
       if(speed != cur_speed) {
         // reset everything then change speed
         accelerate(speed);
       }
+      request->send_P(200, "text/plain", String("accelerated").c_str());
   });
   server.begin();
 
