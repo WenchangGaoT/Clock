@@ -12,11 +12,13 @@
 // Global variables
 Servo servoMotor;  
 WiFiUDP ntpUDP;
-int servoInitPos = 30;
+int servoInitPos = 0;
+int servoFinalPos = 20;
 AsyncWebServer server(80);
 int cur_speed;            
 unsigned long last_unix_epoch; // Unix epoch time spot of the most recent reset()
 int buttonLastState;
+bool knocked;
  
 // Setting up wifi info 
 const char *ssid     = "P60Art";
@@ -90,6 +92,7 @@ void setup() {
   cur_speed = 1;
   last_unix_epoch = timeClient.getEpochTime();
   buttonLastState = HIGH;
+  knocked = false;
 
   // Initialize servo position
   servoMotor.write(servoInitPos);
@@ -105,7 +108,7 @@ void reset() {
 // Pre-defined servo behavior for making sound signal
 void moveServo(){
   Serial.println("Moving arm!");
-  servoMotor.write(0);
+  servoMotor.write(servoFinalPos);
   delay(1000);
   servoMotor.write(servoInitPos);
   delay(1000);
@@ -188,13 +191,17 @@ void loop() {
 
   // Check local time
   getLocalTime(time);
-  if(time[1] % 15 == 0 && time[2] == 0) {
+  if(time[1] % 15 == 0 && !knocked) {
     // Move servo once every 15 minutes (in local clock);
     Serial.print("Local Time: \n");
     printLocalTime();
     Serial.print("\nGlobal Time: \n");
     printGlobalTime();
-    moveServo();
+    moveServo(); 
+    knocked = true;
+  } 
+  else {
+    if(time[1] % 15 != 0) knocked = false;
   }
   buttonLastState = buttonCurState;
 }
