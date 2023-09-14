@@ -4,6 +4,8 @@
 #include <TimeLib.h>
 #include <ESP32Servo.h>
 #include "ESPAsyncWebServer.h"
+#include "soc/soc.h"
+#include "soc/rtc_cntl_reg.h"
 
 // PINs
 #define SERVO_PIN 26 
@@ -19,7 +21,7 @@ int cur_speed;
 unsigned long last_unix_epoch; // Unix epoch time spot of the most recent reset()
 int buttonLastState;
 bool knocked;
- 
+
 // Setting up wifi info 
 const char *ssid     = "P60Art";
 const char *password = "fsj13579";
@@ -47,6 +49,7 @@ int str2int(String s) {
 }
 
 void setup() {
+    WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable   detector
  
   Serial.begin(115200);
   
@@ -109,9 +112,22 @@ void reset() {
 void moveServo(){
   Serial.println("Moving arm!");
   servoMotor.write(servoFinalPos);
-  delay(1000);
+  delay(250);
   servoMotor.write(servoInitPos);
   delay(1000);
+}
+
+void triggerServo(byte time[5]){
+    Serial.print("\nMoving servos to show hour...\n");
+    for(int i = 0; i < time[0]; i++) moveServo();
+    // Serial.print("\nMoved %d times!", &time[0]);
+    // Do something?
+    Serial.print("Moving servos to show 10 minute mark...\n");
+    delay(3000);
+    for(int i = 0; i < time[1]/10; i++) moveServo();
+    delay(3000);
+    Serial.print("Moving servo to show minute marker...\n");
+    for(int i = 0; i < time[1]%10; i++) moveServo();
 }
 
 void printGlobalTime() {
@@ -178,15 +194,11 @@ void loop() {
     printGlobalTime();
 
     getLocalTime(time);
-    
-    Serial.print("\nMoving servos to show hour...\n");
-    for(int i = 0; i < time[0]; i++) moveServo();
-    // Serial.print("\nMoved %d times!", &time[0]);
-    // Do something?
-    Serial.print("Moving servos to show minute...\n");
-    delay(3000);
-    for(int i = 0; i < time[1]/10; i++) moveServo();
+
+    triggerServo(time);
+
     delay(2000); // Wait 2 seconds after button clicking event
+
   }
 
   // Check local time
@@ -197,7 +209,7 @@ void loop() {
     printLocalTime();
     Serial.print("\nGlobal Time: \n");
     printGlobalTime();
-    moveServo(); 
+    triggerServo(time);
     knocked = true;
   } 
   else {
