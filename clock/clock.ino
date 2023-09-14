@@ -36,6 +36,7 @@ byte last_second, second_, minute_, hour_, day_, month_;
 int year_;
  
 
+// Convert a string representation of an integer back into an integer
 int str2int(String s) {
   int ret = 0;
   Serial.println(s);
@@ -59,7 +60,7 @@ void setup() {
   }
   Serial.println("\nSuccessfully connected to WiFI.\n");
 
-  // Setting up server
+  // Setting up server for other device to communicate using http proxy
   WiFi.softAP(server_id, server_pwd);
   Serial.print("\nSetting up server...");
   // WiFi.softAP(ssid, password);
@@ -67,7 +68,8 @@ void setup() {
   Serial.println(IP);
   Serial.print("\nSuccessfully set up server.\n");
 
-  // This creates a new thread.
+  // This creates a new thread that constantly waits for new requests.
+  // Once a new request is detected, the callback function would be called to change clock speed.
   // Calls back when receive inputs.
   server.on("/test",HTTP_POST,[](AsyncWebServerRequest * request){},
     NULL,[](AsyncWebServerRequest * request, uint8_t *data_in, size_t len, size_t index, size_t total) {
@@ -85,7 +87,7 @@ void setup() {
   });
   server.begin();
 
-  // Initializations
+  // Other initializations
   timeClient.begin(); // Setting up time client
   servoMotor.attach(SERVO_PIN);  // Setting up servo
   pinMode(BUTTON_PIN, INPUT_PULLUP); // Setting up button
@@ -99,6 +101,7 @@ void setup() {
   delay(1000);
 }
 
+// Reset everything.
 void reset() {
   timeClient.update();
   cur_speed = 1;
@@ -114,6 +117,7 @@ void moveServo(int delay_time1, int delay_time2){
   delay(delay_time2);
 }
 
+// Double click the bell to show the second digit of minute.
 void moveServo_double(int delay_time1, int delay_time2, int delay_time3){
   Serial.println("Moving arm!");
   servoMotor.write(servoFinalPos);
@@ -127,6 +131,7 @@ void moveServo_double(int delay_time1, int delay_time2, int delay_time3){
   delay(delay_time3);
 }
 
+// Print the current Internet time
 void printGlobalTime() {
   timeClient.update();
   unsigned long unix_epoch = timeClient.getEpochTime();
@@ -146,6 +151,8 @@ void printGlobalTime() {
   Serial.print(Time);
 }
 
+// Get the local clock time
+// Returns nothing, but changes the input array.
 void getLocalTime(byte* time_arr) {
   // Calculate locally accelerated time and return with the arguments passed in
   // time_arr[0]: hour in local time
@@ -160,6 +167,7 @@ void getLocalTime(byte* time_arr) {
   time_arr[2] = second(local_unix_epoch) % 60;
 }
 
+// Print local clock time
 void printLocalTime() {
   byte time[5];
   getLocalTime(time);
@@ -172,6 +180,7 @@ void printLocalTime() {
   Serial.print(Time);
 }
 
+// Change local clock speed after syncing with Internet clock
 void accelerate(int speed) {
   timeClient.update();
   last_unix_epoch = timeClient.getEpochTime();
@@ -191,15 +200,19 @@ void loop() {
     printGlobalTime();
 
     getLocalTime(time);
-    
+
+    // Click to show hour
     Serial.print("\nMoving servos to show hour...\n");
     for(int i = 0; i < time[0]; i++) moveServo(100, 1500);
     // Serial.print("\nMoved %d times!", &time[0]);
-    // Do something?
+
+    // Double click to show tens of minute
     Serial.print("Moving servos to show minute...\n");
     delay(1000);
     for(int i = 0; i < time[1]/10; i++) moveServo_double(100, 100, 500);
     delay(1000); // Wait 2 seconds after button clicking event
+
+    // Single but quicker click to show minute digit
     for(int i = 0; i < time[1]%10; i++) moveServo(100, 300);
   }
 
